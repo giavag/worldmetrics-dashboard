@@ -3,6 +3,7 @@ package com.worldmetrics.backend.service;
 import com.worldmetrics.backend.core.exceptions.EntityNotFoundException;
 import com.worldmetrics.backend.core.exceptions.ExternalApiException;
 import com.worldmetrics.backend.dto.WorldBankDataDto;
+import com.worldmetrics.backend.mapper.MetricValueMapper;
 import com.worldmetrics.backend.model.Country;
 import com.worldmetrics.backend.model.Indicator;
 import com.worldmetrics.backend.model.MetricValue;
@@ -30,6 +31,7 @@ public class DefaultWorldBankDataService implements WorldBankDataService {
     private final CountryRepository countryRepository;
     private final IndicatorRepository indicatorRepository;
     private final MetricValueRepository metricValueRepository;
+    private final MetricValueMapper metricValueMapper;
 
     @Override
     @Transactional
@@ -84,11 +86,7 @@ public class DefaultWorldBankDataService implements WorldBankDataService {
                             dto.indicator().id())
                     );
 
-            MetricValue metricValue = new MetricValue();
-            metricValue.setCountry(country);
-            metricValue.setIndicator(indicator);
-            metricValue.setYear(Integer.parseInt(dto.date()));
-            metricValue.setValue(dto.value());
+            MetricValue metricValue = metricValueMapper.mapToEntity(dto, country, indicator);
 
             metricValueRepository.save(metricValue);
         }
