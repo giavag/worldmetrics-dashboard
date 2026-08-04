@@ -9,5 +9,5 @@ import java.util.Optional;
 @Repository
 public interface IndicatorRepository extends JpaRepository<Indicator, Integer> {
 
-    Optional<Indicator> findById(String id);
+    Optional<Indicator> findByApiCode(String apiCode);
 }

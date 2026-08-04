@@ -80,7 +80,7 @@ public class DefaultWorldBankDataService implements WorldBankDataService {
                             dto.countryIso3Code())
                     );
 
-            Indicator indicator = indicatorRepository.findById(dto.indicator().id())
+            Indicator indicator = indicatorRepository.findByApiCode(dto.indicator().id())
                     .orElseThrow(() -> new EntityNotFoundException(
                             Indicator.class,
                             dto.indicator().id())
