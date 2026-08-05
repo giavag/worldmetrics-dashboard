@@ -75,38 +75,65 @@ public class DefaultWorldBankDataService implements WorldBankDataService {
     public void saveData(List<WorldBankDataDto> data) {
         log.debug("Processing {} records retrieved from API...", data.size());
 
-        Map<String, Country> countryCache = new HashMap<>();
-        Map<String, Indicator> indicatorCache = new HashMap<>();
+        // 1. Collect only valid DTOs and years (ignoring null values)
+        List<WorldBankDataDto> validDtos = new ArrayList<>();
+        List<Integer> yearsToProcess = new ArrayList<>();
+
+        for (WorldBankDataDto dto : data) {
+            if (dto.value() != null && dto.date() != null) {
+                validDtos.add(dto);
+                yearsToProcess.add(Integer.valueOf(dto.date()));
+            }
+        }
+
+        if (validDtos.isEmpty()) {
+            log.warn("No valid records found to save (all retrieved values were null).");
+            return;
+        }
+
+        // 2. Since all DTOs in this specific request belong to the same Country & Indicator,
+        // we fetch the Entities only once (using the first DTO) to minimize DB calls.
+        WorldBankDataDto firstDto = validDtos.get(0);
+
+        Country country = countryRepository.findByIsoCode(firstDto.countryIso3Code())
+                .orElseThrow(() -> new EntityNotFoundException(Country.class, firstDto.countryIso3Code()));
+
+        Indicator indicator = indicatorRepository.findByApiCode(firstDto.indicator().id())
+                .orElseThrow(() -> new EntityNotFoundException(Indicator.class, firstDto.indicator().id()));
+
+        // 3. Fetch existing records from the database for these specific years
+        List<MetricValue> existingRecords = metricValueRepository
+                .findByCountryAndIndicatorAndYearIn(country, indicator, yearsToProcess);
+
+        // 4. Create a Map (Year -> MetricValue) for O(1) instant lookup
+        Map<Integer, MetricValue> existingRecordsMap = new HashMap<>();
+        for (MetricValue mv : existingRecords) {
+            existingRecordsMap.put(mv.getYear(), mv);
+        }
 
         List<MetricValue> metricsToSave = new ArrayList<>();
 
-        for (WorldBankDataDto dto : data) {
+        // 5. The Upsert loop (Update or Insert)
+        for (WorldBankDataDto dto : validDtos) {
+            MetricValue metricValue;
+            Integer dtoYear = Integer.valueOf(dto.date());
 
-            if (dto.value() == null) {
-                log.trace("Skipping record with null value for year: {}", dto.date());
-                continue;
+            if (existingRecordsMap.containsKey(dtoYear)) {
+                // Record already exists: UPDATE the value (handling data revisions)
+                metricValue = existingRecordsMap.get(dtoYear);
+                metricValue.setValue(dto.value());
+                log.trace("Updating existing record for year: {}", dto.date());
+            } else {
+                // Record does not exist: INSERT via our Mapper
+                metricValue = metricValueMapper.mapToEntity(dto, country, indicator);
+                log.trace("Creating new record for year: {}", dto.date());
             }
 
-            // Get from cache, or fetch from DB and put in cache if not exists
-            Country country = countryCache.computeIfAbsent(dto.countryIso3Code(), isoCode ->
-                    countryRepository.findByIsoCode(isoCode)
-                            .orElseThrow(() -> new EntityNotFoundException(Country.class, isoCode))
-            );
-
-            Indicator indicator = indicatorCache.computeIfAbsent(dto.indicator().id(), apiCode ->
-                    indicatorRepository.findByApiCode(apiCode)
-                            .orElseThrow(() -> new EntityNotFoundException(Indicator.class, apiCode))
-            );
-
-            MetricValue metricValue = metricValueMapper.mapToEntity(dto, country, indicator);
             metricsToSave.add(metricValue);
         }
 
-        if (!metricsToSave.isEmpty()) {
-            metricValueRepository.saveAll(metricsToSave);
-            log.info("Successfully saved {} valid metric values to the database.", metricsToSave.size());
-        } else {
-            log.warn("No valid records found to save (all retrieved values were null).");
-        }
+        // 6. Bulk save operation
+        metricValueRepository.saveAll(metricsToSave);
+        log.info("Successfully upserted {} metric values to the database.", metricsToSave.size());
     }
 }
