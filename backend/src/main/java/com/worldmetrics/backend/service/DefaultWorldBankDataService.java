@@ -19,7 +19,10 @@ import tools.jackson.core.type.TypeReference;
 import tools.jackson.databind.JsonNode;
 import tools.jackson.databind.ObjectMapper;
 
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @Service
 @Slf4j
@@ -51,7 +54,7 @@ public class DefaultWorldBankDataService implements WorldBankDataService {
                 countryIsoCode, indicatorId, year);
 
         JsonNode responseNode = restClient.get()
-                .uri("/country/{country}/indicator/{indicator}?format=json&date={date}",
+                .uri("/country/{country}/indicator/{indicator}?format=json&date={date}&per_page=1000",
                         countryIsoCode, indicatorId, year)
                 .retrieve()
                 .body(JsonNode.class);
@@ -70,26 +73,40 @@ public class DefaultWorldBankDataService implements WorldBankDataService {
 
     @Override
     public void saveData(List<WorldBankDataDto> data) {
-        log.debug("Saving {} records to the database...", data.size());
+        log.debug("Processing {} records retrieved from API...", data.size());
+
+        Map<String, Country> countryCache = new HashMap<>();
+        Map<String, Indicator> indicatorCache = new HashMap<>();
+
+        List<MetricValue> metricsToSave = new ArrayList<>();
 
         for (WorldBankDataDto dto : data) {
 
-            Country country = countryRepository.findByIsoCode(dto.countryIso3Code())
-                    .orElseThrow(() -> new EntityNotFoundException(
-                            Country.class,
-                            dto.countryIso3Code())
-                    );
+            if (dto.value() == null) {
+                log.trace("Skipping record with null value for year: {}", dto.date());
+                continue;
+            }
 
-            Indicator indicator = indicatorRepository.findByApiCode(dto.indicator().id())
-                    .orElseThrow(() -> new EntityNotFoundException(
-                            Indicator.class,
-                            dto.indicator().id())
-                    );
+            // Get from cache, or fetch from DB and put in cache if not exists
+            Country country = countryCache.computeIfAbsent(dto.countryIso3Code(), isoCode ->
+                    countryRepository.findByIsoCode(isoCode)
+                            .orElseThrow(() -> new EntityNotFoundException(Country.class, isoCode))
+            );
+
+            Indicator indicator = indicatorCache.computeIfAbsent(dto.indicator().id(), apiCode ->
+                    indicatorRepository.findByApiCode(apiCode)
+                            .orElseThrow(() -> new EntityNotFoundException(Indicator.class, apiCode))
+            );
 
             MetricValue metricValue = metricValueMapper.mapToEntity(dto, country, indicator);
-
-            metricValueRepository.save(metricValue);
+            metricsToSave.add(metricValue);
         }
 
+        if (!metricsToSave.isEmpty()) {
+            metricValueRepository.saveAll(metricsToSave);
+            log.info("Successfully saved {} valid metric values to the database.", metricsToSave.size());
+        } else {
+            log.warn("No valid records found to save (all retrieved values were null).");
+        }
     }
 }
