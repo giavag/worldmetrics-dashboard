@@ -13,7 +13,7 @@ import org.springframework.web.bind.annotation.RestController;
  * REST Controller for managing ETL operations related to World Bank data.
  */
 @RestController
-@RequestMapping("/api/etl")
+@RequestMapping("/api/v1/etl")
 @RequiredArgsConstructor
 @Slf4j
 public class WorldBankDataRestController {
