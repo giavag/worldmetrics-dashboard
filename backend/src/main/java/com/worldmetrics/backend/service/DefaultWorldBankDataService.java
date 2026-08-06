@@ -2,6 +2,8 @@ package com.worldmetrics.backend.service;
 
 import com.worldmetrics.backend.core.exceptions.EntityNotFoundException;
 import com.worldmetrics.backend.core.exceptions.ExternalApiException;
+import com.worldmetrics.backend.dto.MetricDataPointDto;
+import com.worldmetrics.backend.dto.MetricSeriesResponseDto;
 import com.worldmetrics.backend.dto.WorldBankDataDto;
 import com.worldmetrics.backend.mapper.MetricValueMapper;
 import com.worldmetrics.backend.model.Country;
@@ -135,5 +137,43 @@ public class DefaultWorldBankDataService implements WorldBankDataService {
         // 6. Bulk save operation
         metricValueRepository.saveAll(metricsToSave);
         log.info("Successfully upserted {} metric values to the database.", metricsToSave.size());
+    }
+
+    @Override
+    public MetricSeriesResponseDto getMetricsSeries(String countryIsoCode, String indicatorApiCode) {
+        log.debug("Fetching metric series for Country: {} and Indicator: {}", countryIsoCode, indicatorApiCode);
+
+        // 1. Find the Country entity
+        Country country = countryRepository.findByIsoCode(countryIsoCode)
+                .orElseThrow(() -> new EntityNotFoundException(Country.class, countryIsoCode));
+
+        // 2. Find the Indicator entity
+        Indicator indicator = indicatorRepository.findByApiCode(indicatorApiCode)
+                .orElseThrow(() -> new EntityNotFoundException(Indicator.class, indicatorApiCode));
+
+        // 3. Fetch the sorted data from the database
+        List<MetricValue> metricValues = metricValueRepository
+                .findByCountryAndIndicatorOrderByYearAsc(country, indicator);
+
+        if (metricValues.isEmpty()) {
+            log.warn("No data found in the database for Country: {} and Indicator: {}", countryIsoCode, indicatorApiCode);
+            // Optionally, for Approach 2 (On-Demand), this is where you would trigger the ETL process.
+        }
+
+        // 4. Map the Entities (MetricValue) to DTOs (MetricDataPointDto)
+        List<MetricDataPointDto> dataPoints = new ArrayList<>();
+        for (MetricValue mv : metricValues) {
+            // Convert Integer year to String for the JSON response
+            dataPoints.add(new MetricDataPointDto(String.valueOf(mv.getYear()), mv.getValue()));
+        }
+
+        // 5. Create and return the final Wrapper DTO
+        return new MetricSeriesResponseDto(
+                country.getIsoCode(),
+                country.getName(),
+                indicator.getApiCode(),
+                indicator.getName(),
+                dataPoints
+        );
     }
 }

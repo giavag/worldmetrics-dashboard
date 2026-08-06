@@ -12,4 +12,5 @@ import java.util.List;
 public interface MetricValueRepository extends JpaRepository<MetricValue, Integer> {
 
     List<MetricValue> findByCountryAndIndicatorAndYearIn(Country country, Indicator indicator, List<Integer> years);
+    List<MetricValue> findByCountryAndIndicatorOrderByYearAsc(Country country, Indicator indicator);
 }
