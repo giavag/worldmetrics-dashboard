@@ -157,7 +157,6 @@ public class DefaultWorldBankDataService implements WorldBankDataService {
 
         if (metricValues.isEmpty()) {
             log.warn("No data found in the database for Country: {} and Indicator: {}", countryIsoCode, indicatorApiCode);
-            // Optionally, for Approach 2 (On-Demand), this is where you would trigger the ETL process.
         }
 
         // 4. Map the Entities (MetricValue) to DTOs (MetricDataPointDto)

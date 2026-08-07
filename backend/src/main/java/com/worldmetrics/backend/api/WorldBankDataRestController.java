@@ -1,5 +1,6 @@
 package com.worldmetrics.backend.api;
 
+import com.worldmetrics.backend.service.MassiveSyncService;
 import com.worldmetrics.backend.service.WorldBankDataService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -19,9 +20,10 @@ import org.springframework.web.bind.annotation.RestController;
 public class WorldBankDataRestController {
 
     private final WorldBankDataService worldBankDataService;
+    private final MassiveSyncService massiveSyncService;
 
-    @PostMapping("/world-bank")
-    public ResponseEntity<String> triggerWorldBankEtl(
+    @PostMapping("/sync")
+    public ResponseEntity<String> syncSpecificData(
             @RequestParam String country,
             @RequestParam String indicator,
             @RequestParam String year) {
@@ -34,4 +36,14 @@ public class WorldBankDataRestController {
         return ResponseEntity.ok("ETL process completed successfully for country: " + country);
     }
 
+    @PostMapping("/sync-all")
+    public ResponseEntity<String> syncAllData(
+            @RequestParam(defaultValue = "2000:2025") String yearRange) {
+
+        log.info("Received REST request to trigger massive ETL sync-all for years: {}", yearRange);
+
+        massiveSyncService.syncAllData(yearRange);
+
+        return ResponseEntity.ok("Massive sync process completed successfully");
+    }
 }
