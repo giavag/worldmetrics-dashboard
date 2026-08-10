@@ -9,6 +9,7 @@ import com.worldmetrics.backend.repository.RoleRepository;
 import com.worldmetrics.backend.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
@@ -23,10 +24,14 @@ public class AdminSeeder implements CommandLineRunner {
     private final PasswordEncoder passwordEncoder;
     private final UserMapper userMapper;
 
+    @Value("${application.admin.email}")
+    private String adminEmail;
+
+    @Value("${application.admin.password}")
+    private String adminPassword;
+
     @Override
-    public void run(String... args) throws Exception {
-        String adminEmail = "admin@worldmetrics.com";
-        String adminPassword = "SuperAdmin123!";
+    public void run(String... args) {
 
         // Check if the admin user already exists to prevent duplicate entries on restarts
         if (userRepository.findByEmail(adminEmail).isEmpty()) {
