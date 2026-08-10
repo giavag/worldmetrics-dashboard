@@ -1,6 +1,7 @@
 package com.worldmetrics.backend.mapper;
 
 import com.worldmetrics.backend.dto.RegisterRequestDTO;
+import com.worldmetrics.backend.dto.UserReadOnlyDTO;
 import com.worldmetrics.backend.model.Role;
 import com.worldmetrics.backend.model.User;
 import org.springframework.stereotype.Component;
@@ -15,5 +16,13 @@ public class UserMapper {
         user.setPassword(encodedPassword);
         user.setRole(role);
         return user;
+    }
+
+    public UserReadOnlyDTO toReadOnlyDTO(User user) {
+        return new UserReadOnlyDTO(
+                user.getId(),
+                user.getEmail(),
+                user.getRole().getName()
+        );
     }
 }
