@@ -20,8 +20,12 @@ public class UserMapper {
     }
 
     public UserReadOnlyDTO toReadOnlyDTO(User user) {
+        if (user == null) {
+            return null;
+        }
+
         return new UserReadOnlyDTO(
-                user.getId(),
+                user.getUuid(),
                 user.getEmail(),
                 user.getRole().getName()
         );

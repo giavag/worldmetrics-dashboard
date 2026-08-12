@@ -14,6 +14,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.UUID;
 
 @Slf4j
 @RestController
@@ -43,5 +44,15 @@ public class UserRestController {
         UserReadOnlyDTO createdUser = userService.createUser(request);
 
         return ResponseEntity.status(201).body(createdUser);
+    }
+
+    @Operation(summary = "Delete a user", description = "Soft deletes a user by their UUID. Requires ADMIN privileges.")
+    @ApiResponse(responseCode = "204", description = "User successfully deleted")
+    @SecurityRequirement(name = "Bearer Authentication")
+    @DeleteMapping("/{uuid}")
+    public ResponseEntity<Void> deleteUser(@PathVariable UUID uuid) {
+        log.info("REST request to delete user with UUID: {}", uuid);
+        userService.deleteUser(uuid);
+        return ResponseEntity.noContent().build();
     }
 }
