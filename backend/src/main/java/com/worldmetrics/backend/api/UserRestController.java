@@ -1,6 +1,7 @@
 package com.worldmetrics.backend.api;
 
 import com.worldmetrics.backend.dto.CreateUserRequestDTO;
+import com.worldmetrics.backend.dto.UpdateUserRequestDTO;
 import com.worldmetrics.backend.dto.UserReadOnlyDTO;
 import com.worldmetrics.backend.service.UserService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -26,6 +27,7 @@ public class UserRestController {
     private final UserService userService;
 
     @Operation(summary = "Get all users", description = "Retrieves a list of all registered users. Requires ADMIN privileges.")
+    @ApiResponse(responseCode = "200", description = "List of users successfully retrieved")
     @SecurityRequirement(name = "Bearer Authentication")
     @GetMapping
     public ResponseEntity<List<UserReadOnlyDTO>> getAllUsers() {
@@ -54,5 +56,18 @@ public class UserRestController {
         log.info("REST request to delete user with UUID: {}", uuid);
         userService.deleteUser(uuid);
         return ResponseEntity.noContent().build();
+    }
+
+    @Operation(summary = "Update a user", description = "Updates a user's email and role by their UUID. Requires ADMIN privileges.")
+    @ApiResponse(responseCode = "200", description = "User successfully updated")
+    @SecurityRequirement(name = "Bearer Authentication")
+    @PutMapping("/{uuid}")
+    public ResponseEntity<UserReadOnlyDTO> updateUser(
+            @PathVariable UUID uuid,
+            @Valid @RequestBody UpdateUserRequestDTO request) {
+
+        log.info("REST request to update user with UUID: {}", uuid);
+        UserReadOnlyDTO updatedUser = userService.updateUser(uuid, request);
+        return ResponseEntity.ok(updatedUser);
     }
 }

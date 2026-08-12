@@ -4,6 +4,7 @@ import com.worldmetrics.backend.core.exceptions.EntityNotFoundException;
 import com.worldmetrics.backend.core.exceptions.RoleNotFoundException;
 import com.worldmetrics.backend.core.exceptions.UserAlreadyExistsException;
 import com.worldmetrics.backend.dto.CreateUserRequestDTO;
+import com.worldmetrics.backend.dto.UpdateUserRequestDTO;
 import com.worldmetrics.backend.dto.UserReadOnlyDTO;
 import com.worldmetrics.backend.mapper.UserMapper;
 import com.worldmetrics.backend.model.Role;
@@ -71,5 +72,36 @@ public class DefaultUserService implements UserService {
         userRepository.save(user);
 
         log.info("User with UUID: {} was soft deleted successfully", uuid);
+    }
+
+    @Override
+    @Transactional
+    public UserReadOnlyDTO updateUser(UUID uuid, UpdateUserRequestDTO request) {
+        log.info("Attempting to update user with UUID: {}", uuid);
+
+        // 1. Find the user
+        User user = userRepository.findByUuidAndDeletedFalse(uuid)
+                .orElseThrow(() -> new EntityNotFoundException(User.class, uuid.toString()));
+
+        // 2. Check if the new email belongs to another user
+        if (!user.getEmail().equalsIgnoreCase(request.email())) {
+            userRepository.findByEmail(request.email()).ifPresent(existingUser -> {
+                throw new UserAlreadyExistsException("Email is already in use by another user");
+            });
+            user.setEmail(request.email());
+        }
+
+        // 3. Update the role (if it is different)
+        if (!user.getRole().getName().equalsIgnoreCase(request.role())) {
+            Role newRole = roleRepository.findByName(request.role().toUpperCase())
+                    .orElseThrow(() -> new RoleNotFoundException("Role not found: " + request.role()));
+            user.setRole(newRole);
+        }
+
+        // 4. Save and return
+        User updatedUser = userRepository.save(user);
+        log.info("User with UUID: {} was updated successfully", uuid);
+
+        return userMapper.toReadOnlyDTO(updatedUser);
     }
 }
