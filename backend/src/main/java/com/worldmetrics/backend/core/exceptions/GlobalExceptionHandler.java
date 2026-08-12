@@ -50,13 +50,13 @@ public class GlobalExceptionHandler {
         return new ResponseEntity<>(error, HttpStatus.INTERNAL_SERVER_ERROR); // HTTP 500
     }
 
-    // Fallback handler for any other unexpected exceptions
-    @ExceptionHandler(Exception.class)
-    public ResponseEntity<ErrorResponseDTO> handleGenericException(Exception ex) {
-        log.error("An unexpected error occurred during processing: ", ex);
+    // Handles errors originating from external API integrations
+    @ExceptionHandler(ExternalApiException.class)
+    public ResponseEntity<ErrorResponseDTO> handleExternalApiException(ExternalApiException ex) {
+        log.error("External API communication failed: {}", ex.getMessage());
 
-        ErrorResponseDTO error = new ErrorResponseDTO("INTERNAL_SERVER_ERROR", "An unexpected error occurred.");
-        return new ResponseEntity<>(error, HttpStatus.INTERNAL_SERVER_ERROR); // HTTP 500
+        ErrorResponseDTO error = new ErrorResponseDTO("EXTERNAL_API_ERROR", ex.getMessage());
+        return new ResponseEntity<>(error, HttpStatus.BAD_GATEWAY); // HTTP 502
     }
 
     // Handles the custom exception when an entity is not found
@@ -67,4 +67,15 @@ public class GlobalExceptionHandler {
         ErrorResponseDTO error = new ErrorResponseDTO("RESOURCE_NOT_FOUND", ex.getMessage());
         return new ResponseEntity<>(error, HttpStatus.NOT_FOUND); // HTTP 404
     }
+
+    // Fallback handler for any other unexpected exceptions
+    @ExceptionHandler(Exception.class)
+    public ResponseEntity<ErrorResponseDTO> handleGenericException(Exception ex) {
+        log.error("An unexpected error occurred during processing: ", ex);
+
+        ErrorResponseDTO error = new ErrorResponseDTO("INTERNAL_SERVER_ERROR", "An unexpected error occurred.");
+        return new ResponseEntity<>(error, HttpStatus.INTERNAL_SERVER_ERROR); // HTTP 500
+    }
+
+
 }
