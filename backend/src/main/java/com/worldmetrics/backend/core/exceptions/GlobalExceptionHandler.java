@@ -58,4 +58,13 @@ public class GlobalExceptionHandler {
         ErrorResponseDTO error = new ErrorResponseDTO("INTERNAL_SERVER_ERROR", "An unexpected error occurred.");
         return new ResponseEntity<>(error, HttpStatus.INTERNAL_SERVER_ERROR); // HTTP 500
     }
+
+    // Handles the custom exception when an entity is not found
+    @ExceptionHandler(EntityNotFoundException.class)
+    public ResponseEntity<ErrorResponseDTO> handleEntityNotFound(EntityNotFoundException ex) {
+        log.warn("Resource not found: {}", ex.getMessage());
+
+        ErrorResponseDTO error = new ErrorResponseDTO("RESOURCE_NOT_FOUND", ex.getMessage());
+        return new ResponseEntity<>(error, HttpStatus.NOT_FOUND); // HTTP 404
+    }
 }
