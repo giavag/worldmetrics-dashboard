@@ -1,5 +1,6 @@
 package com.worldmetrics.backend.service;
 
+import com.worldmetrics.backend.core.exceptions.EntityNotFoundException;
 import com.worldmetrics.backend.core.exceptions.RoleNotFoundException;
 import com.worldmetrics.backend.core.exceptions.UserAlreadyExistsException;
 import com.worldmetrics.backend.dto.CreateUserRequestDTO;
@@ -16,6 +17,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.UUID;
 
 @Slf4j
 @Service
@@ -30,7 +32,7 @@ public class DefaultUserService implements UserService {
     @Override
     @Transactional(readOnly = true)
     public List<UserReadOnlyDTO> getAllUsers() {
-        return userRepository.findAll()
+        return userRepository.findAllByDeletedFalse()
                 .stream()
                 .map(userMapper::toReadOnlyDTO)
                 .toList();
@@ -55,5 +57,19 @@ public class DefaultUserService implements UserService {
         log.info("User created successfully with ID: {}", savedUser.getId());
 
         return userMapper.toReadOnlyDTO(savedUser);
+    }
+
+    @Override
+    @Transactional
+    public void deleteUser(UUID uuid) {
+        log.info("Attempting to soft delete user with UUID: {}", uuid);
+
+        User user = userRepository.findByUuidAndDeletedFalse(uuid)
+                .orElseThrow(() -> new EntityNotFoundException(User.class, uuid.toString()));
+
+        user.setDeleted(true);
+        userRepository.save(user);
+
+        log.info("User with UUID: {} was soft deleted successfully", uuid);
     }
 }
