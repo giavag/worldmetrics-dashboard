@@ -3,6 +3,8 @@ import { useNavigate } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
+import { useState } from 'react';
+import { authService } from '../services/authService';
 
 // 1. Define the Zod Schema for Validation
 const loginSchema = z.object({
@@ -20,6 +22,7 @@ type LoginData = z.infer<typeof loginSchema>;
 
 const Login: React.FC = () => {
     const navigate = useNavigate();
+    const [loginError, setLoginError] = useState<string | null>(null);
 
     // 3. Initialize React Hook Form
     const {
@@ -32,9 +35,16 @@ const Login: React.FC = () => {
     });
 
     // 4. The handler that runs ONLY if the data is valid
-    const onSubmit = (data: LoginData) => {
-        console.log("Valid credentials ready to be sent:", data);
-        navigate('/dashboard');
+    const onSubmit = async (data: LoginData) => {
+        try {
+            setLoginError(null);
+            await authService.login(data);
+            console.log("Login successful! Token saved in localStorage.");
+            navigate('/dashboard');
+        } catch (error) {
+            console.error("Login failed:", error);
+            setLoginError("Invalid email or password. Please try again.");
+        }
     };
 
     return (
@@ -71,6 +81,11 @@ const Login: React.FC = () => {
                             <p className="text-red-500 text-sm mt-1">{errors.password.message}</p>
                         )}
                     </div>
+                    {loginError && (
+                        <div className="bg-red-50 text-red-600 p-3 rounded text-sm border border-red-200">
+                            {loginError}
+                        </div>
+                    )}
                     <button
                         type="submit"
                         disabled={isSubmitting}
