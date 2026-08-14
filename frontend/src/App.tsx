@@ -3,6 +3,7 @@ import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import Login from './pages/Login';
 import Dashboard from './pages/Dashboard';
 import Layout from './shared/layout/Layout';
+import ProtectedRoute from './components/ProtectedRoute';
 
 const App: React.FC = () => {
     return (
@@ -10,8 +11,10 @@ const App: React.FC = () => {
             <Routes>
                 <Route path="/login" element={<Login />} />
 
-                <Route path="/dashboard" element={<Layout />}>
-                    <Route index element={<Dashboard />} />
+                <Route element={<ProtectedRoute />}>
+                    <Route path="/dashboard" element={<Layout />}>
+                        <Route index element={<Dashboard />} />
+                    </Route>
                 </Route>
 
                 <Route path="*" element={<Navigate to="/login" replace />} />

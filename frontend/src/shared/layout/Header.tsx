@@ -1,11 +1,12 @@
 import React from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import { authService } from '../../services/authService';
 
 const Header: React.FC = () => {
     const navigate = useNavigate();
 
     const handleLogout = () => {
-        console.log("Logging out...");
+        authService.logout();
         navigate('/login');
     };
 
