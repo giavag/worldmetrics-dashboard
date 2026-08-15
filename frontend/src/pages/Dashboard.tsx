@@ -2,23 +2,9 @@ import React, { useState, useEffect } from 'react';
 import { metricService } from '../services/metricService';
 import { etlService } from '../services/etlService';
 import { authService } from '../services/authService';
+import { dimensionService, type DimensionItem } from '../services/dimensionService';
 import type {MetricDataPoint} from '../types/metrics';
 import MetricChart from '../components/MetricChart';
-
-// Static options for the MVP (Can be replaced with API calls later)
-const COUNTRIES = [
-    { code: 'GRC', name: 'Greece' },
-    { code: 'CYP', name: 'Cyprus' },
-    { code: 'DEU', name: 'Germany' },
-    { code: 'USA', name: 'United States' },
-    { code: 'FRA', name: 'France' }
-];
-
-const INDICATORS = [
-    { code: 'NY.GDP.MKTP.CD', name: 'GDP (current US$)' },
-    { code: 'SP.POP.TOTL', name: 'Population, total' },
-    { code: 'FP.CPI.TOTL.ZG', name: 'Inflation, consumer prices (annual %)' }
-];
 
 const CHART_TYPES = [
     { value: 'line', label: 'Line Chart' },
@@ -27,41 +13,71 @@ const CHART_TYPES = [
 ];
 
 const Dashboard: React.FC = () => {
-    // 1. Filter States
-    const [selectedCountry, setSelectedCountry] = useState<string>('GRC');
-    const [selectedIndicator, setSelectedIndicator] = useState<string>('NY.GDP.MKTP.CD');
+    // 1. Dimension (Filter) States
+    const [countries, setCountries] = useState<DimensionItem[]>([]);
+    const [indicators, setIndicators] = useState<DimensionItem[]>([]);
+
+    // 2. Selection States
+    const [selectedCountry, setSelectedCountry] = useState<string>('');
+    const [selectedIndicator, setSelectedIndicator] = useState<string>('');
     const [chartType, setChartType] = useState<'line' | 'bar' | 'area'>('line');
 
-    // 2. Chart Data State
+    // 3. Chart Data State
     const [chartData, setChartData] = useState<MetricDataPoint[]>([]);
     const [loading, setLoading] = useState<boolean>(true);
     const [error, setError] = useState<string | null>(null);
 
-    // 3. ETL Sync State
+    // 4. ETL Sync State
     const [isSyncing, setIsSyncing] = useState<boolean>(false);
     const [syncMessage, setSyncMessage] = useState<{ type: 'success' | 'error', text: string } | null>(null);
 
-    // 4. Authorization Check
+    // 5. Authorization Check
     const userIsAdmin = authService.isAdmin();
 
-    // Fetch chart data based on selected filters
-    const fetchMetrics = async (country: string, indicator: string) => {
-        try {
-            setLoading(true);
-            const response = await metricService.getMetricsSeries(country, indicator);
-            setChartData(response.data);
-            setError(null);
-        } catch (err) {
-            console.error("Failed to fetch metrics:", err);
-            setError("Failed to load data. Please try again.");
-        } finally {
-            setLoading(false);
-        }
-    };
-
-    // React to filter changes automatically
+    // Initialize Dashboard: Fetch dimensions first
     useEffect(() => {
-        fetchMetrics(selectedCountry, selectedIndicator);
+        const fetchDimensions = async () => {
+            try {
+                const [countriesData, indicatorsData] = await Promise.all([
+                    dimensionService.getCountries(),
+                    dimensionService.getIndicators()
+                ]);
+
+                setCountries(countriesData);
+                setIndicators(indicatorsData);
+
+                // Set initial selections if data is available
+                if (countriesData.length > 0) setSelectedCountry(countriesData[0].code);
+                if (indicatorsData.length > 0) setSelectedIndicator(indicatorsData[0].code);
+
+            } catch (err) {
+                console.error("Failed to fetch dimensions:", err);
+                setError("Failed to load filter options.");
+            }
+        };
+
+        fetchDimensions();
+    }, []);
+
+    // Fetch chart data automatically when filters change
+    useEffect(() => {
+        const fetchMetrics = async () => {
+            if (!selectedCountry || !selectedIndicator) return;
+
+            try {
+                setLoading(true);
+                const response = await metricService.getMetricsSeries(selectedCountry, selectedIndicator);
+                setChartData(response.data);
+                setError(null);
+            } catch (err) {
+                console.error("Failed to fetch metrics:", err);
+                setError("Failed to load chart data. Please try again.");
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        fetchMetrics();
     }, [selectedCountry, selectedIndicator]);
 
     // Handle ETL Sync execution
@@ -73,7 +89,14 @@ const Dashboard: React.FC = () => {
             await etlService.syncAllData();
 
             setSyncMessage({ type: 'success', text: 'Data synchronization completed successfully!' });
-            await fetchMetrics(selectedCountry, selectedIndicator);
+
+            // Re-fetch current chart data after sync
+            if (selectedCountry && selectedIndicator) {
+                setLoading(true);
+                const response = await metricService.getMetricsSeries(selectedCountry, selectedIndicator);
+                setChartData(response.data);
+                setLoading(false);
+            }
         } catch (err) {
             console.error("Sync failed:", err);
             setSyncMessage({ type: 'error', text: 'Synchronization failed. Please check the backend logs.' });
@@ -82,10 +105,12 @@ const Dashboard: React.FC = () => {
         }
     };
 
-    // Determine the dynamic chart title
-    const currentCountryName = COUNTRIES.find(c => c.code === selectedCountry)?.name || selectedCountry;
-    const currentIndicatorName = INDICATORS.find(i => i.code === selectedIndicator)?.name || selectedIndicator;
-    const chartTitle = `${currentIndicatorName} (${currentCountryName})`;
+    // Determine the dynamic chart title safely
+    const currentCountryName = countries.find(c => c.code === selectedCountry)?.name || selectedCountry;
+    const currentIndicatorName = indicators.find(i => i.code === selectedIndicator)?.name || selectedIndicator;
+    const chartTitle = selectedCountry && selectedIndicator
+        ? `${currentIndicatorName} (${currentCountryName})`
+        : 'Loading...';
 
     return (
         <div className="space-y-6">
@@ -126,9 +151,10 @@ const Dashboard: React.FC = () => {
                         id="country-select"
                         value={selectedCountry}
                         onChange={(e) => setSelectedCountry(e.target.value)}
-                        className="w-full border border-slate-300 rounded px-3 py-2 focus:outline-none focus:ring-1 focus:ring-wm-primary focus:border-wm-primary"
+                        disabled={countries.length === 0}
+                        className="w-full border border-slate-300 rounded px-3 py-2 focus:outline-none focus:ring-1 focus:ring-wm-primary focus:border-wm-primary disabled:bg-slate-100"
                     >
-                        {COUNTRIES.map((country) => (
+                        {countries.map((country) => (
                             <option key={country.code} value={country.code}>
                                 {country.name}
                             </option>
@@ -144,9 +170,10 @@ const Dashboard: React.FC = () => {
                         id="indicator-select"
                         value={selectedIndicator}
                         onChange={(e) => setSelectedIndicator(e.target.value)}
-                        className="w-full border border-slate-300 rounded px-3 py-2 focus:outline-none focus:ring-1 focus:ring-wm-primary focus:border-wm-primary"
+                        disabled={indicators.length === 0}
+                        className="w-full border border-slate-300 rounded px-3 py-2 focus:outline-none focus:ring-1 focus:ring-wm-primary focus:border-wm-primary disabled:bg-slate-100"
                     >
-                        {INDICATORS.map((indicator) => (
+                        {indicators.map((indicator) => (
                             <option key={indicator.code} value={indicator.code}>
                                 {indicator.name}
                             </option>
