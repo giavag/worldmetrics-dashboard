@@ -1,10 +1,13 @@
 import React, { useState, useEffect } from 'react';
-import { userService, type UserReadOnly } from '../services/userService';
+import { userService, type UserReadOnly, type UpdateUserRequest } from '../services/userService';
+import EditUserModal from '../components/EditUserModal';
 
 const AdminPanel: React.FC = () => {
     const [users, setUsers] = useState<UserReadOnly[]>([]);
     const [loading, setLoading] = useState<boolean>(true);
     const [error, setError] = useState<string | null>(null);
+
+    const [editingUser, setEditingUser] = useState<UserReadOnly | null>(null);
 
     const fetchUsers = async () => {
         try {
@@ -14,7 +17,7 @@ const AdminPanel: React.FC = () => {
             setError(null);
         } catch (err) {
             console.error("Failed to fetch users:", err);
-            setError("Failed to load users. You might not have the correct permissions.");
+            setError("Failed to load users.");
         } finally {
             setLoading(false);
         }
@@ -25,10 +28,7 @@ const AdminPanel: React.FC = () => {
     }, []);
 
     const handleDelete = async (uuid: string, email: string) => {
-        if (!window.confirm(`Are you sure you want to delete user ${email}?`)) {
-            return;
-        }
-
+        if (!window.confirm(`Are you sure you want to delete user ${email}?`)) return;
         try {
             await userService.deleteUser(uuid);
             await fetchUsers();
@@ -36,6 +36,11 @@ const AdminPanel: React.FC = () => {
             console.error("Failed to delete user:", err);
             alert("Failed to delete user. Please try again.");
         }
+    };
+
+    const handleSaveEdit = async (uuid: string, data: UpdateUserRequest) => {
+        await userService.updateUser(uuid, data);
+        await fetchUsers();
     };
 
     if (loading) {
@@ -47,50 +52,34 @@ const AdminPanel: React.FC = () => {
     }
 
     return (
-        <div className="space-y-6">
-            {/* Header */}
+        <div className="space-y-6 relative">
             <div className="bg-white p-6 rounded shadow-sm border border-slate-200 flex justify-between items-center">
                 <div>
                     <h2 className="text-xl font-semibold text-wm-dark mb-1">User Management</h2>
-                    <p className="text-sm text-slate-600">
-                        View and manage all registered users in the system.
-                    </p>
+                    <p className="text-sm text-slate-600">View and manage all registered users.</p>
                 </div>
             </div>
 
             {error && (
-                <div className="bg-red-50 text-red-600 p-4 rounded border border-red-200">
-                    {error}
-                </div>
+                <div className="bg-red-50 text-red-600 p-4 rounded border border-red-200">{error}</div>
             )}
 
-            {/* Users Table */}
             <div className="bg-white shadow-sm border border-slate-200 rounded-lg overflow-hidden">
                 <div className="overflow-x-auto">
                     <table className="min-w-full divide-y divide-slate-200">
                         <thead className="bg-slate-50">
                         <tr>
-                            <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">
-                                Name
-                            </th>
-                            <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">
-                                Email
-                            </th>
-                            <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">
-                                Role
-                            </th>
-                            <th scope="col" className="px-6 py-3 text-right text-xs font-medium text-slate-500 uppercase tracking-wider">
-                                Actions
-                            </th>
+                            <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Name</th>
+                            <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Email</th>
+                            <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Role</th>
+                            <th className="px-6 py-3 text-right text-xs font-medium text-slate-500 uppercase tracking-wider">Actions</th>
                         </tr>
                         </thead>
                         <tbody className="bg-white divide-y divide-slate-200">
                         {users.map((user) => (
                             <tr key={user.uuid} className="hover:bg-slate-50 transition-colors">
                                 <td className="px-6 py-4 whitespace-nowrap">
-                                    <div className="text-sm font-medium text-slate-900">
-                                        {user.firstName} {user.lastName}
-                                    </div>
+                                    <div className="text-sm font-medium text-slate-900">{user.firstName} {user.lastName}</div>
                                 </td>
                                 <td className="px-6 py-4 whitespace-nowrap">
                                     <div className="text-sm text-slate-500">{user.email}</div>
@@ -102,7 +91,13 @@ const AdminPanel: React.FC = () => {
                                             {user.role}
                                         </span>
                                 </td>
-                                <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                                <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium space-x-4">
+                                    <button
+                                        onClick={() => setEditingUser(user)}
+                                        className="text-wm-primary hover:text-wm-secondary font-semibold"
+                                    >
+                                        Edit
+                                    </button>
                                     <button
                                         onClick={() => handleDelete(user.uuid, user.email)}
                                         className="text-red-600 hover:text-red-900 font-semibold"
@@ -112,17 +107,17 @@ const AdminPanel: React.FC = () => {
                                 </td>
                             </tr>
                         ))}
-                        {users.length === 0 && (
-                            <tr>
-                                <td colSpan={4} className="px-6 py-4 text-center text-sm text-slate-500">
-                                    No users found.
-                                </td>
-                            </tr>
-                        )}
                         </tbody>
                     </table>
                 </div>
             </div>
+
+            <EditUserModal
+                isOpen={!!editingUser}
+                user={editingUser}
+                onClose={() => setEditingUser(null)}
+                onSave={handleSaveEdit}
+            />
         </div>
     );
 };

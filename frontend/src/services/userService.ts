@@ -8,6 +8,13 @@ export interface UserReadOnly {
     role: string;
 }
 
+export interface UpdateUserRequest {
+    firstName: string;
+    lastName: string;
+    email: string;
+    role: string;
+}
+
 export const userService = {
     getAllUsers: async (): Promise<UserReadOnly[]> => {
         const response = await api.get<UserReadOnly[]>('/users');
@@ -16,5 +23,10 @@ export const userService = {
 
     deleteUser: async (uuid: string): Promise<void> => {
         await api.delete(`/users/${uuid}`);
+    },
+
+    updateUser: async (uuid: string, userData: UpdateUserRequest): Promise<UserReadOnly> => {
+        const response = await api.put<UserReadOnly>(`/users/${uuid}`, userData);
+        return response.data;
     }
 };
