@@ -83,7 +83,11 @@ public class DefaultUserService implements UserService {
         User user = userRepository.findByUuidAndDeletedFalse(uuid)
                 .orElseThrow(() -> new EntityNotFoundException(User.class, uuid.toString()));
 
-        // 2. Check if the new email belongs to another user
+        // 2. Update basic personal information
+        user.setFirstName(request.firstName());
+        user.setLastName(request.lastName());
+
+        // 3. Check if the new email belongs to another user
         if (!user.getEmail().equalsIgnoreCase(request.email())) {
             userRepository.findByEmail(request.email()).ifPresent(existingUser -> {
                 throw new UserAlreadyExistsException("Email is already in use by another user");
@@ -91,14 +95,14 @@ public class DefaultUserService implements UserService {
             user.setEmail(request.email());
         }
 
-        // 3. Update the role (if it is different)
+        // 4. Update the role (if it is different)
         if (!user.getRole().getName().equalsIgnoreCase(request.role())) {
             Role newRole = roleRepository.findByName(request.role().toUpperCase())
                     .orElseThrow(() -> new RoleNotFoundException("Role not found: " + request.role()));
             user.setRole(newRole);
         }
 
-        // 4. Save and return
+        // 5. Save and return
         User updatedUser = userRepository.save(user);
         log.info("User with UUID: {} was updated successfully", uuid);
 
