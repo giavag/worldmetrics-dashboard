@@ -42,7 +42,7 @@ public class AdminSeeder implements CommandLineRunner {
                     .orElseThrow(() -> new RoleNotFoundException("ADMIN role not found. Ensure Flyway scripts ran successfully."));
 
             // Create a DTO to mimic a registration request
-            RegisterRequestDTO adminDto = new RegisterRequestDTO(adminEmail, adminPassword);
+            RegisterRequestDTO adminDto = new RegisterRequestDTO("System", "Admin", adminEmail, adminPassword);
 
             // Encode the password securely
             String encodedPassword = passwordEncoder.encode(adminDto.password());
