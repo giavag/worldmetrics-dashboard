@@ -1,5 +1,5 @@
 import api from './api';
-import type {AuthenticationRequestDTO, AuthenticationResponseDTO} from '../types/auth';
+import type {AuthenticationRequestDTO, AuthenticationResponseDTO, RegisterRequestDTO} from '../types/auth';
 
 export const authService = {
 
@@ -14,6 +14,11 @@ export const authService = {
     // Clears the JWT token to log the user out
     logout: () => {
         localStorage.removeItem('jwt_token');
+    },
+
+    // Registers a new user
+    register: async (userData: RegisterRequestDTO): Promise<void> => {
+        await api.post('/auth/register', userData);
     },
 
     // Checks if the currently logged-in user has the ADMIN role

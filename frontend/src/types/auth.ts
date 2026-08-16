@@ -8,3 +8,11 @@ export interface AuthenticationRequestDTO {
 export interface AuthenticationResponseDTO {
     token: string;
 }
+
+// Matches the backend RegisterRequestDTO
+export interface RegisterRequestDTO {
+    firstName: string;
+    lastName: string;
+    email: string;
+    password: string;
+}
