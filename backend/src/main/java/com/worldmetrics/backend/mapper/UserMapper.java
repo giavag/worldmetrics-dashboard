@@ -13,6 +13,8 @@ public class UserMapper {
     // Converts the DTO, the encoded password, and the Role into a User Entity
     public User toUser(RegisterRequestDTO dto, String encodedPassword, Role role) {
         User user = new User();
+        user.setFirstName(dto.firstName());
+        user.setLastName(dto.lastName());
         user.setEmail(dto.email());
         user.setPassword(encodedPassword);
         user.setRole(role);
@@ -34,6 +36,8 @@ public class UserMapper {
     // Converts the CreateUserRequestDTO to a User Entity
     public User toUser(CreateUserRequestDTO dto, String encodedPassword, Role role) {
         User user = new User();
+        user.setFirstName(dto.firstName());
+        user.setLastName(dto.lastName());
         user.setEmail(dto.email());
         user.setPassword(encodedPassword);
         user.setRole(role);
