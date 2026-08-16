@@ -28,6 +28,8 @@ public class UserMapper {
 
         return new UserReadOnlyDTO(
                 user.getUuid(),
+                user.getFirstName(),
+                user.getLastName(),
                 user.getEmail(),
                 user.getRole().getName()
         );
