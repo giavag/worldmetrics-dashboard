@@ -36,4 +36,6 @@ public interface WorldBankDataService {
      * @return A MetricSeriesResponseDto containing metadata and sorted data points
      */
     MetricSeriesResponseDto getMetricsSeries(String countryIsoCode, String indicatorApiCode);
+
+    List<MetricSeriesResponseDto> getCompareMetricsSeries(List<String> countryIsoCodes, String indicatorApiCode);
 }
