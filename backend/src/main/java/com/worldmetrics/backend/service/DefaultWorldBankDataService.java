@@ -175,4 +175,13 @@ public class DefaultWorldBankDataService implements WorldBankDataService {
                 dataPoints
         );
     }
+
+    @Override
+    public List<MetricSeriesResponseDto> getCompareMetricsSeries(List<String> countryIsoCodes, String indicatorApiCode) {
+        log.debug("Fetching compare metric series for Countries: {} and Indicator: {}", countryIsoCodes, indicatorApiCode);
+
+        return countryIsoCodes.stream()
+                .map(countryIsoCode -> getMetricsSeries(countryIsoCode, indicatorApiCode))
+                .toList();
+    }
 }
