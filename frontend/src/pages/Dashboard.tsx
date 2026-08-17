@@ -4,7 +4,7 @@ import { etlService } from '../services/etlService';
 import { authService } from '../services/authService';
 import { dimensionService, type DimensionItem } from '../services/dimensionService';
 import type {MetricDataPoint} from '../types/metrics';
-import MetricChart from '../components/MetricChart';
+import MetricChart, { type ChartSeries } from '../components/MetricChart';
 
 const CHART_TYPES = [
     { value: 'line', label: 'Line Chart' },
@@ -67,7 +67,7 @@ const Dashboard: React.FC = () => {
             try {
                 setLoading(true);
                 const response = await metricService.getMetricsSeries(selectedCountry, selectedIndicator);
-                setChartData(response.data);
+                setChartData(response.data.data);
                 setError(null);
             } catch (err) {
                 console.error("Failed to fetch metrics:", err);
@@ -94,7 +94,7 @@ const Dashboard: React.FC = () => {
             if (selectedCountry && selectedIndicator) {
                 setLoading(true);
                 const response = await metricService.getMetricsSeries(selectedCountry, selectedIndicator);
-                setChartData(response.data);
+                setChartData(response.data.data);
                 setLoading(false);
             }
         } catch (err) {
@@ -105,12 +105,18 @@ const Dashboard: React.FC = () => {
         }
     };
 
-    // Determine the dynamic chart title safely
     const currentCountryName = countries.find(c => c.code === selectedCountry)?.name || selectedCountry;
     const currentIndicatorName = indicators.find(i => i.code === selectedIndicator)?.name || selectedIndicator;
     const chartTitle = selectedCountry && selectedIndicator
         ? `${currentIndicatorName} (${currentCountryName})`
         : 'Loading...';
+
+    // Create a single series configuration for the Overview chart
+    const chartSeries: ChartSeries[] = [{
+        dataKey: 'value', // The backend DTO returns the number in a "value" field
+        name: currentCountryName,
+        color: '#1d4ed8' // Primary blue color
+    }];
 
     const handleExportCSV = () => {
         // Ensure data exists before exporting
@@ -256,7 +262,7 @@ const Dashboard: React.FC = () => {
                     <MetricChart
                         title={chartTitle}
                         data={chartData}
-                        color="#1d4ed8"
+                        series={chartSeries}
                         chartType={chartType}
                     />
                 </div>

@@ -20,15 +20,26 @@ const Sidebar: React.FC = () => {
                         Overview
                     </NavLink>
 
-                    {/* Placeholder for future features */}
+                    {/* Analysis Section */}
                     <div className="pt-4 mt-4 border-t border-slate-100">
                         <p className="px-4 text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">
                             Analysis
                         </p>
-                        <span className="block px-4 py-2 text-slate-400 cursor-not-allowed font-medium">
-                            Compare (Coming Soon)
-                        </span>
-                        <span className="block px-4 py-2 text-slate-400 cursor-not-allowed font-medium">
+
+                        <NavLink
+                            to="/compare"
+                            className={({ isActive }) =>
+                                `block px-4 py-2 rounded transition-colors ${
+                                    isActive
+                                        ? 'bg-wm-primary text-white font-medium shadow-sm'
+                                        : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900 font-medium'
+                                }`
+                            }
+                        >
+                            Compare
+                        </NavLink>
+
+                        <span className="block px-4 py-2 text-slate-400 cursor-not-allowed font-medium mt-1">
                             My Dashboards (Coming Soon)
                         </span>
                     </div>

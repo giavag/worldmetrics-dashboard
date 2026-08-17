@@ -1,13 +1,19 @@
 import api from './api';
-import type {MetricSeriesResponse} from '../types/metrics';
+import type { MetricSeriesResponse } from '../types/metrics';
 
 export const metricService = {
-
-    getMetricsSeries: async (country: string, indicator: string): Promise<MetricSeriesResponse> => {
+    getMetricsSeries: async (countryIsoCode: string, indicatorCode: string) => {
         const response = await api.get<MetricSeriesResponse>('/metrics', {
+            params: { country: countryIsoCode, indicator: indicatorCode }
+        });
+        return response;
+    },
+
+    getCompareMetricsSeries: async (countryIsoCodes: string[], indicatorCode: string) => {
+        const response = await api.get<MetricSeriesResponse[]>('/metrics/compare', {
             params: {
-                country: country,
-                indicator: indicator
+                countries: countryIsoCodes.join(','),
+                indicator: indicatorCode
             }
         });
         return response.data;
