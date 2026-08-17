@@ -112,6 +112,35 @@ const Dashboard: React.FC = () => {
         ? `${currentIndicatorName} (${currentCountryName})`
         : 'Loading...';
 
+    const handleExportCSV = () => {
+        // Ensure data exists before exporting
+        if (!chartData || chartData.length === 0) {
+            alert("No data available to export.");
+            return;
+        }
+
+        // Define CSV headers
+        const headers = ['Year', 'Value'];
+        const csvRows = [headers.join(',')];
+
+        // Format data rows
+        chartData.forEach(row => {
+            csvRows.push(`${row.year},${row.value}`);
+        });
+
+        // Create and trigger download
+        const csvContent = "data:text/csv;charset=utf-8," + csvRows.join('\n');
+        const encodedUri = encodeURI(csvContent);
+
+        const link = document.createElement("a");
+        link.setAttribute("href", encodedUri);
+        link.setAttribute("download", "world_metrics_export.csv");
+
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+    };
+
     return (
         <div className="space-y-6">
             {/* Header Section */}
@@ -215,7 +244,15 @@ const Dashboard: React.FC = () => {
                     </div>
                 </div>
             ) : !error && (
-                <div className="grid grid-cols-1 gap-6">
+                <div className="grid grid-cols-1 gap-4">
+                    <div className="flex justify-end">
+                        <button
+                            onClick={handleExportCSV}
+                            className="px-4 py-2 bg-white border border-slate-300 text-slate-700 rounded shadow-sm hover:bg-slate-50 hover:text-wm-primary font-medium text-sm transition-colors"
+                        >
+                            Export to CSV
+                        </button>
+                    </div>
                     <MetricChart
                         title={chartTitle}
                         data={chartData}
