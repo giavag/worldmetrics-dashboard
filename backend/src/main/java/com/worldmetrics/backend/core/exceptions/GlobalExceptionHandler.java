@@ -68,6 +68,15 @@ public class GlobalExceptionHandler {
         return new ResponseEntity<>(error, HttpStatus.NOT_FOUND); // HTTP 404
     }
 
+    // Handles unauthorized actions on specific resources (e.g., deleting someone else's widget)
+    @ExceptionHandler(UnauthorizedActionException.class)
+    public ResponseEntity<ErrorResponseDTO> handleUnauthorizedAction(UnauthorizedActionException ex) {
+        log.warn("Unauthorized access/action attempted: {}", ex.getMessage());
+
+        ErrorResponseDTO error = new ErrorResponseDTO("FORBIDDEN_ACTION", ex.getMessage());
+        return new ResponseEntity<>(error, HttpStatus.FORBIDDEN); // HTTP 403
+    }
+
     // Fallback handler for any other unexpected exceptions
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ErrorResponseDTO> handleGenericException(Exception ex) {
