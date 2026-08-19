@@ -3,8 +3,16 @@ import {
     LineChart, Line,
     BarChart, Bar,
     AreaChart, Area,
-    XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend
+    XAxis, YAxis, CartesianGrid
 } from 'recharts';
+import {
+    ChartContainer,
+    ChartTooltip,
+    ChartTooltipContent,
+    ChartLegend,
+    ChartLegendContent,
+    type ChartConfig
+} from '@/components/ui/chart';
 
 export interface ChartSeries {
     dataKey: string;
@@ -34,36 +42,60 @@ const MetricChart: React.FC<MetricChartProps> = ({
         );
     }
 
-    const formatTooltipValue = (value: any) => {
-        return new Intl.NumberFormat('en-US').format(Number(value));
-    };
+    const chartConfig: ChartConfig = {};
+    series.forEach((s) => {
+        chartConfig[s.dataKey] = {
+            label: s.name,
+            color: s.color,
+        };
+    });
+
+    const yAxisFormatter = (value: number) =>
+        new Intl.NumberFormat('en-US', { notation: "compact", compactDisplay: "short" }).format(value);
 
     const renderChart = () => {
         switch (chartType) {
             case 'bar':
                 return (
-                    <BarChart data={data} margin={{ top: 5, right: 20, bottom: 5, left: 0 }}>
+                    <BarChart data={data} accessibilityLayer margin={{ top: 5, right: 20, bottom: 5, left: 0 }}>
                         <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e2e8f0" />
-                        <XAxis dataKey="year" tick={{ fill: '#64748b', fontSize: 12 }} axisLine={false} tickLine={false} dy={10}/>
-                        <YAxis tick={{ fill: '#64748b', fontSize: 12 }} axisLine={false} tickLine={false} width={80} tickFormatter={(value) => new Intl.NumberFormat('en-US', { notation: "compact", compactDisplay: "short" }).format(value)} />
-                        <Tooltip contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }} formatter={formatTooltipValue} labelStyle={{ color: '#0f172a', fontWeight: 'bold', marginBottom: '4px' }} />
-                        <Legend wrapperStyle={{ paddingTop: '20px' }} />
+                        <XAxis dataKey="year" tick={{ fill: '#64748b', fontSize: 12 }} axisLine={false} tickLine={false} dy={10} tickMargin={10} />
+                        <YAxis tick={{ fill: '#64748b', fontSize: 12 }} axisLine={false} tickLine={false} width={50} tickFormatter={yAxisFormatter} />
+
+                        <ChartTooltip content={<ChartTooltipContent />} />
+                        <ChartLegend content={<ChartLegendContent />} />
+
                         {series.map((s) => (
-                            <Bar key={s.dataKey} dataKey={s.dataKey} name={s.name} fill={s.color} radius={[4, 4, 0, 0]} />
+                            <Bar
+                                key={s.dataKey}
+                                dataKey={s.dataKey}
+                                fill={`var(--color-${s.dataKey})`}
+                                radius={[4, 4, 0, 0]}
+                            />
                         ))}
                     </BarChart>
                 );
 
             case 'area':
                 return (
-                    <AreaChart data={data} margin={{ top: 5, right: 20, bottom: 5, left: 0 }}>
+                    <AreaChart data={data} accessibilityLayer margin={{ top: 5, right: 20, bottom: 5, left: 0 }}>
                         <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e2e8f0" />
-                        <XAxis dataKey="year" tick={{ fill: '#64748b', fontSize: 12 }} axisLine={false} tickLine={false} dy={10}/>
-                        <YAxis tick={{ fill: '#64748b', fontSize: 12 }} axisLine={false} tickLine={false} width={80} tickFormatter={(value) => new Intl.NumberFormat('en-US', { notation: "compact", compactDisplay: "short" }).format(value)} />
-                        <Tooltip contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }} formatter={formatTooltipValue} labelStyle={{ color: '#0f172a', fontWeight: 'bold', marginBottom: '4px' }} />
-                        <Legend wrapperStyle={{ paddingTop: '20px' }} />
+                        <XAxis dataKey="year" tick={{ fill: '#64748b', fontSize: 12 }} axisLine={false} tickLine={false} dy={10} tickMargin={10} />
+                        <YAxis tick={{ fill: '#64748b', fontSize: 12 }} axisLine={false} tickLine={false} width={50} tickFormatter={yAxisFormatter} />
+
+                        <ChartTooltip content={<ChartTooltipContent />} />
+                        <ChartLegend content={<ChartLegendContent />} />
+
                         {series.map((s) => (
-                            <Area key={s.dataKey} type="monotone" dataKey={s.dataKey} name={s.name} stroke={s.color} fill={s.color} fillOpacity={0.2} strokeWidth={3} />
+                            <Area
+                                key={s.dataKey}
+                                type="monotone"
+                                dataKey={s.dataKey}
+                                stroke={`var(--color-${s.dataKey})`}
+                                fill={`var(--color-${s.dataKey})`}
+                                fillOpacity={0.2}
+                                strokeWidth={3}
+                            />
                         ))}
                     </AreaChart>
                 );
@@ -71,14 +103,24 @@ const MetricChart: React.FC<MetricChartProps> = ({
             case 'line':
             default:
                 return (
-                    <LineChart data={data} margin={{ top: 5, right: 20, bottom: 5, left: 0 }}>
+                    <LineChart data={data} accessibilityLayer margin={{ top: 5, right: 20, bottom: 5, left: 0 }}>
                         <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e2e8f0" />
-                        <XAxis dataKey="year" tick={{ fill: '#64748b', fontSize: 12 }} axisLine={false} tickLine={false} dy={10}/>
-                        <YAxis tick={{ fill: '#64748b', fontSize: 12 }} axisLine={false} tickLine={false} width={80} tickFormatter={(value) => new Intl.NumberFormat('en-US', { notation: "compact", compactDisplay: "short" }).format(value)} />
-                        <Tooltip contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }} formatter={formatTooltipValue} labelStyle={{ color: '#0f172a', fontWeight: 'bold', marginBottom: '4px' }} />
-                        <Legend wrapperStyle={{ paddingTop: '20px' }} />
+                        <XAxis dataKey="year" tick={{ fill: '#64748b', fontSize: 12 }} axisLine={false} tickLine={false} dy={10} tickMargin={10} />
+                        <YAxis tick={{ fill: '#64748b', fontSize: 12 }} axisLine={false} tickLine={false} width={50} tickFormatter={yAxisFormatter} />
+
+                        <ChartTooltip content={<ChartTooltipContent />} />
+                        <ChartLegend content={<ChartLegendContent />} />
+
                         {series.map((s) => (
-                            <Line key={s.dataKey} type="monotone" dataKey={s.dataKey} name={s.name} stroke={s.color} strokeWidth={3} dot={{ r: 0 }} activeDot={{ r: 6, fill: s.color, stroke: '#fff', strokeWidth: 2 }} />
+                            <Line
+                                key={s.dataKey}
+                                type="monotone"
+                                dataKey={s.dataKey}
+                                stroke={`var(--color-${s.dataKey})`}
+                                strokeWidth={3}
+                                dot={{ r: 0 }}
+                                activeDot={{ r: 6, fill: `var(--color-${s.dataKey})`, stroke: '#fff', strokeWidth: 2 }}
+                            />
                         ))}
                     </LineChart>
                 );
@@ -88,11 +130,10 @@ const MetricChart: React.FC<MetricChartProps> = ({
     return (
         <div className="bg-white p-6 rounded shadow-sm border border-slate-200">
             <h3 className="text-lg font-semibold text-wm-dark mb-6">{title}</h3>
-            <div className="h-80 w-full">
-                <ResponsiveContainer width="100%" height="100%">
-                    {renderChart()}
-                </ResponsiveContainer>
-            </div>
+            {/* Αντικατάσταση του ResponsiveContainer με το ChartContainer του shadcn */}
+            <ChartContainer config={chartConfig} className="h-80 w-full">
+                {renderChart()}
+            </ChartContainer>
         </div>
     );
 };
