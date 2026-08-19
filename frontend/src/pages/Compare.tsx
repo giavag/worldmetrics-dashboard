@@ -4,6 +4,9 @@ import { etlService } from '../services/etlService';
 import { authService } from '../services/authService';
 import { dimensionService, type DimensionItem } from '../services/dimensionService';
 import MetricChart, {type ChartSeries } from '../components/MetricChart';
+import { savedWidgetService } from '../services/savedWidgetService';
+import { Button } from '@/components/ui/button';
+import { Save } from 'lucide-react';
 
 const CHART_TYPES = [
     { value: 'line', label: 'Line Chart' },
@@ -14,6 +17,7 @@ const CHART_TYPES = [
 const CHART_COLORS = ['#1d4ed8', '#059669', '#dc2626', '#d97706', '#7c3aed', '#db2777'];
 
 const Compare: React.FC = () => {
+    const [isSaving, setIsSaving] = useState<boolean>(false);
     const [countries, setCountries] = useState<DimensionItem[]>([]);
     const [indicators, setIndicators] = useState<DimensionItem[]>([]);
 
@@ -118,6 +122,26 @@ const Compare: React.FC = () => {
         }
     };
 
+    const handleSaveWidget = async () => {
+        if (selectedCountries.length === 0 || !selectedIndicator) return;
+
+        try {
+            setIsSaving(true);
+            await savedWidgetService.saveWidget({
+                title: `${currentIndicatorName} - Comparison`, // Φτιάχνουμε έναν ωραίο τίτλο
+                countries: selectedCountries.join(','),
+                indicatorCode: selectedIndicator,
+                chartType: chartType
+            });
+            alert("Widget saved successfully to My Dashboards!");
+        } catch (err) {
+            console.error("Failed to save widget:", err);
+            alert("Failed to save widget. Please try again.");
+        } finally {
+            setIsSaving(false);
+        }
+    };
+
     const handleCountryChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
         const selectedOptions = Array.from(e.target.selectedOptions, option => option.value);
         if (selectedOptions.length <= 5) {
@@ -139,15 +163,26 @@ const Compare: React.FC = () => {
                     <p className="text-slate-600">Hold Ctrl/Cmd to select multiple countries.</p>
                 </div>
 
-                {userIsAdmin && (
-                    <button
-                        onClick={handleSyncData}
-                        disabled={isSyncing}
-                        className="bg-wm-primary hover:bg-wm-secondary text-white font-medium py-2 px-6 rounded transition-colors disabled:opacity-70 disabled:cursor-not-allowed flex items-center justify-center min-w-[140px]"
+                <div className="flex gap-3">
+                    <Button
+                        onClick={handleSaveWidget}
+                        disabled={isSaving || selectedCountries.length === 0 || !selectedIndicator}
+                        className="flex items-center gap-2"
                     >
-                        {isSyncing ? 'Syncing...' : 'Sync Data'}
-                    </button>
-                )}
+                        <Save className="w-4 h-4" />
+                        {isSaving ? 'Saving...' : 'Save to Dashboard'}
+                    </Button>
+
+                    {userIsAdmin && (
+                        <button
+                            onClick={handleSyncData}
+                            disabled={isSyncing}
+                            className="bg-wm-primary hover:bg-wm-secondary text-white font-medium py-2 px-6 rounded transition-colors disabled:opacity-70 disabled:cursor-not-allowed flex items-center justify-center min-w-[140px]"
+                        >
+                            {isSyncing ? 'Syncing...' : 'Sync Data'}
+                        </button>
+                    )}
+                </div>
             </div>
 
             {syncMessage && (
