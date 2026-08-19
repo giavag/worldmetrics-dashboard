@@ -15,10 +15,18 @@ export interface UpdateUserRequest {
     role: string;
 }
 
+export interface PageResponse<T> {
+    content: T[];
+    totalElements: number;
+    totalPages: number;
+    size: number;
+    number: number;
+}
+
 export const userService = {
     getAllUsers: async (): Promise<UserReadOnly[]> => {
-        const response = await api.get<UserReadOnly[]>('/users');
-        return response.data;
+        const response = await api.get<PageResponse<UserReadOnly>>('/users');
+        return response.data.content; // <--- Εδώ είναι η διόρθωση!
     },
 
     deleteUser: async (uuid: string): Promise<void> => {
