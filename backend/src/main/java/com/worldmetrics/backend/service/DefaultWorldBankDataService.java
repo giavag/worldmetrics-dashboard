@@ -95,7 +95,7 @@ public class DefaultWorldBankDataService implements WorldBankDataService {
 
         // 2. Since all DTOs in this specific request belong to the same Country & Indicator,
         // we fetch the Entities only once (using the first DTO) to minimize DB calls.
-        WorldBankDataDto firstDto = validDtos.get(0);
+        WorldBankDataDto firstDto = validDtos.getFirst();
 
         Country country = countryRepository.findByIsoCode(firstDto.countryIso3Code())
                 .orElseThrow(() -> new EntityNotFoundException(Country.class, firstDto.countryIso3Code()));
@@ -140,6 +140,7 @@ public class DefaultWorldBankDataService implements WorldBankDataService {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public MetricSeriesResponseDto getMetricsSeries(String countryIsoCode, String indicatorApiCode) {
         log.debug("Fetching metric series for Country: {} and Indicator: {}", countryIsoCode, indicatorApiCode);
 
@@ -177,6 +178,7 @@ public class DefaultWorldBankDataService implements WorldBankDataService {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<MetricSeriesResponseDto> getCompareMetricsSeries(List<String> countryIsoCodes, String indicatorApiCode) {
         log.debug("Fetching compare metric series for Countries: {} and Indicator: {}", countryIsoCodes, indicatorApiCode);
 
