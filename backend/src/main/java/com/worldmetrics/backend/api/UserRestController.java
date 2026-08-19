@@ -11,6 +11,9 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -26,15 +29,16 @@ public class UserRestController {
 
     private final UserService userService;
 
-    @Operation(summary = "Get all users", description = "Retrieves a list of all registered users. Requires ADMIN privileges.")
-    @ApiResponse(responseCode = "200", description = "List of users successfully retrieved")
+    @Operation(summary = "Get all users (Paginated)", description = "Retrieves a paginated list of all registered users. Requires ADMIN privileges. Supports page, size, and sort parameters.")
+    @ApiResponse(responseCode = "200", description = "Paginated list of users successfully retrieved")
     @SecurityRequirement(name = "Bearer Authentication")
     @GetMapping
-    public ResponseEntity<List<UserReadOnlyDTO>> getAllUsers() {
+    public ResponseEntity<Page<UserReadOnlyDTO>> getAllUsers(
+            @PageableDefault(size = 20, sort = "email") Pageable pageable) {
 
-        log.info("REST request to fetch all users");
-        List<UserReadOnlyDTO> users = userService.getAllUsers();
-        return ResponseEntity.ok(users);
+        log.info("REST request to fetch users - Page: {}, Size: {}", pageable.getPageNumber(), pageable.getPageSize());
+        Page<UserReadOnlyDTO> usersPage = userService.getAllUsers(pageable);
+        return ResponseEntity.ok(usersPage);
     }
 
     @Operation(summary = "Create a new user", description = "Allows an ADMIN to create a new user with a specific role.")

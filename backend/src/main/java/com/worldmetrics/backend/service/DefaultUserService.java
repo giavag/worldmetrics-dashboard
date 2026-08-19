@@ -13,6 +13,8 @@ import com.worldmetrics.backend.repository.RoleRepository;
 import com.worldmetrics.backend.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -32,11 +34,10 @@ public class DefaultUserService implements UserService {
 
     @Override
     @Transactional(readOnly = true)
-    public List<UserReadOnlyDTO> getAllUsers() {
-        return userRepository.findAllByDeletedFalse()
-                .stream()
-                .map(userMapper::toReadOnlyDTO)
-                .toList();
+    public Page<UserReadOnlyDTO> getAllUsers(Pageable pageable) {
+
+        return userRepository.findByDeletedFalse(pageable)
+                .map(userMapper::toReadOnlyDTO);
     }
 
     @Override

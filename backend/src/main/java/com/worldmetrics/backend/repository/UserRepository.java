@@ -1,6 +1,8 @@
 package com.worldmetrics.backend.repository;
 
 import com.worldmetrics.backend.model.User;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
@@ -19,4 +21,5 @@ public interface UserRepository extends JpaRepository<User, Long>, JpaSpecificat
     Optional<User> findByUuidAndDeletedFalse(UUID uuid);
     Optional<User> findByEmailAndDeletedFalse(String email);
     List<User> findAllByDeletedFalse();
+    Page<User> findByDeletedFalse(Pageable pageable);
 }
