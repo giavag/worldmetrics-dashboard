@@ -2,7 +2,8 @@ import React, {type JSX} from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import Login from './pages/Login';
 import Dashboard from './pages/Dashboard';
-import Compare from './pages/Compare'; // Προσθήκη του νέου Component
+import Compare from './pages/Compare';
+import { MyDashboards } from './pages/MyDashboards';
 import AdminPanel from './pages/AdminPanel';
 import Layout from './shared/layout/Layout';
 import ProtectedRoute from './components/ProtectedRoute';
@@ -24,13 +25,11 @@ const App: React.FC = () => {
                 {/* Protected Routes (Require single Login) */}
                 <Route element={<ProtectedRoute />}>
                     <Route element={<Layout />}>
-                        {/* Η βασική σελίδα (Single Country) */}
                         <Route path="/dashboard" element={<Dashboard />} />
-
-                        {/* Η νέα σελίδα σύγκρισης (Multiple Countries) */}
                         <Route path="/compare" element={<Compare />} />
 
-                        {/* Protected Route (Requires ADMIN role) */}
+                        <Route path="/dashboards" element={<MyDashboards />} />
+
                         <Route
                             path="/admin"
                             element={
@@ -42,7 +41,6 @@ const App: React.FC = () => {
                     </Route>
                 </Route>
 
-                {/* Fallback for unknown URLs */}
                 <Route path="*" element={<Navigate to="/login" replace />} />
             </Routes>
         </BrowserRouter>
