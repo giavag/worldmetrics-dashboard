@@ -5,6 +5,7 @@ import { authService } from '../services/authService';
 import { dimensionService, type DimensionItem } from '../services/dimensionService';
 import type {MetricDataPoint} from '../types/metrics';
 import MetricChart, { type ChartSeries } from '../components/MetricChart';
+import { Slider } from '@/components/ui/slider';
 
 const CHART_TYPES = [
     { value: 'line', label: 'Line Chart' },
@@ -13,25 +14,30 @@ const CHART_TYPES = [
 ];
 
 const Dashboard: React.FC = () => {
-    // 1. Dimension (Filter) States
+    // Dimension (Filter) States
     const [countries, setCountries] = useState<DimensionItem[]>([]);
     const [indicators, setIndicators] = useState<DimensionItem[]>([]);
 
-    // 2. Selection States
+    // Selection States
     const [selectedCountry, setSelectedCountry] = useState<string>('');
     const [selectedIndicator, setSelectedIndicator] = useState<string>('');
     const [chartType, setChartType] = useState<'line' | 'bar' | 'area'>('line');
 
-    // 3. Chart Data State
+    // Year States for client-side filtering
+    const previousYear = new Date().getFullYear() - 1;
+    const [startYear, setStartYear] = useState<number>(2000);
+    const [endYear, setEndYear] = useState<number>(previousYear);
+
+    // Chart Data State
     const [chartData, setChartData] = useState<MetricDataPoint[]>([]);
     const [loading, setLoading] = useState<boolean>(true);
     const [error, setError] = useState<string | null>(null);
 
-    // 4. ETL Sync State
+    // ETL Sync State
     const [isSyncing, setIsSyncing] = useState<boolean>(false);
     const [syncMessage, setSyncMessage] = useState<{ type: 'success' | 'error', text: string } | null>(null);
 
-    // 5. Authorization Check
+    // Authorization Check
     const userIsAdmin = authService.isAdmin();
 
     // Initialize Dashboard: Fetch dimensions first
@@ -113,28 +119,31 @@ const Dashboard: React.FC = () => {
 
     // Create a single series configuration for the Overview chart
     const chartSeries: ChartSeries[] = [{
-        dataKey: 'value', // The backend DTO returns the number in a "value" field
+        dataKey: 'value',
         name: currentCountryName,
-        color: '#1d4ed8' // Primary blue color
+        color: '#1d4ed8'
     }];
 
+    // Client-side data filtering based on selected year range
+    const filteredChartData = chartData.filter(point => {
+        const pointYear = parseInt(point.year, 10);
+        return pointYear >= startYear && pointYear <= endYear;
+    });
+
+    // Export the *filtered* data to CSV
     const handleExportCSV = () => {
-        // Ensure data exists before exporting
-        if (!chartData || chartData.length === 0) {
+        if (!filteredChartData || filteredChartData.length === 0) {
             alert("No data available to export.");
             return;
         }
 
-        // Define CSV headers
         const headers = ['Year', 'Value'];
         const csvRows = [headers.join(',')];
 
-        // Format data rows
-        chartData.forEach(row => {
+        filteredChartData.forEach(row => {
             csvRows.push(`${row.year},${row.value}`);
         });
 
-        // Create and trigger download
         const csvContent = "data:text/csv;charset=utf-8," + csvRows.join('\n');
         const encodedUri = encodeURI(csvContent);
 
@@ -177,8 +186,8 @@ const Dashboard: React.FC = () => {
             )}
 
             {/* Filters Section */}
-            <div className="bg-white p-6 rounded shadow-sm border border-slate-200 flex flex-col sm:flex-row gap-4">
-                <div className="flex-1">
+            <div className="bg-white p-6 rounded shadow-sm border border-slate-200 flex flex-col md:flex-row gap-4 flex-wrap">
+                <div className="flex-1 min-w-[150px]">
                     <label htmlFor="country-select" className="block text-sm font-medium text-slate-700 mb-1">
                         Country
                     </label>
@@ -197,7 +206,7 @@ const Dashboard: React.FC = () => {
                     </select>
                 </div>
 
-                <div className="flex-1">
+                <div className="flex-1 min-w-[150px]">
                     <label htmlFor="indicator-select" className="block text-sm font-medium text-slate-700 mb-1">
                         Indicator
                     </label>
@@ -216,7 +225,7 @@ const Dashboard: React.FC = () => {
                     </select>
                 </div>
 
-                <div className="flex-1">
+                <div className="flex-1 min-w-[150px]">
                     <label htmlFor="chart-type-select" className="block text-sm font-medium text-slate-700 mb-1">
                         Chart Type
                     </label>
@@ -232,6 +241,32 @@ const Dashboard: React.FC = () => {
                             </option>
                         ))}
                     </select>
+                </div>
+
+                {/* Client-side Range Slider */}
+                <div className="flex-1 min-w-[250px] flex flex-col justify-center px-4">
+                    <div className="flex justify-between items-center mb-4">
+                        <label className="text-sm font-medium text-slate-700">
+                            Year Range
+                        </label>
+                        <span className="text-sm font-bold text-wm-primary bg-blue-50 px-2 py-1 rounded">
+                            {startYear} - {endYear}
+                        </span>
+                    </div>
+                    <Slider
+                        defaultValue={[startYear, endYear]}
+                        min={2000}
+                        max={previousYear}
+                        step={1}
+                        minStepsBetweenValues={1}
+                        onValueChange={(values) => {
+                            if (Array.isArray(values)) {
+                                setStartYear(values[0]);
+                                setEndYear(values[1]);
+                            }
+                        }}
+                        className="w-full"
+                    />
                 </div>
             </div>
 
@@ -261,7 +296,7 @@ const Dashboard: React.FC = () => {
                     </div>
                     <MetricChart
                         title={chartTitle}
-                        data={chartData}
+                        data={filteredChartData}
                         series={chartSeries}
                         chartType={chartType}
                     />
