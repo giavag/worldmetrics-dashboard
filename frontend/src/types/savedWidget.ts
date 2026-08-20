@@ -3,6 +3,8 @@ export interface SavedWidgetRequest {
     countries: string;
     indicatorCode: string;
     chartType: string;
+    startYear: number;
+    endYear: number;
 }
 
 export interface SavedWidgetResponse {
@@ -11,4 +13,6 @@ export interface SavedWidgetResponse {
     countries: string;
     indicatorCode: string;
     chartType: string;
+    startYear: number;
+    endYear: number;
 }

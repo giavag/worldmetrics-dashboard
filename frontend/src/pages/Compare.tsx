@@ -136,7 +136,9 @@ const Compare: React.FC = () => {
                 title: `${currentIndicatorName} - Comparison`,
                 countries: selectedCountries.join(','),
                 indicatorCode: selectedIndicator,
-                chartType: chartType
+                chartType: chartType,
+                startYear: startYear,
+                endYear: endYear
             });
             alert("Widget saved successfully to My Dashboards!");
         } catch (err) {
