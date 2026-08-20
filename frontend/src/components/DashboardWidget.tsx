@@ -52,7 +52,15 @@ export const DashboardWidget: React.FC<DashboardWidgetProps> = ({ widget }) => {
                 const finalChartData = Array.from(dataByYear.values())
                     .sort((a, b) => parseInt(a.year) - parseInt(b.year));
 
-                setChartData(finalChartData);
+                const startYear = widget.startYear ?? 2000;
+                const endYear = widget.endYear ?? new Date().getFullYear() - 1;
+
+                const filteredChartData = finalChartData.filter(point => {
+                    const pointYear = parseInt(point.year, 10);
+                    return pointYear >= startYear && pointYear <= endYear;
+                });
+
+                setChartData(filteredChartData);
 
                 const newConfig: ChartConfig = {};
                 apiResponse.forEach((series, index) => {

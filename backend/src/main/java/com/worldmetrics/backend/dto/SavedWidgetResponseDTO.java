@@ -5,5 +5,7 @@ public record SavedWidgetResponseDTO(
         String title,
         String countries,
         String indicatorCode,
-        String chartType
+        String chartType,
+        Integer startYear,
+        Integer endYear
 ) {}

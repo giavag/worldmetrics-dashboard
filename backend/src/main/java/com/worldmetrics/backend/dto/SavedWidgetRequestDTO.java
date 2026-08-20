@@ -1,6 +1,7 @@
 package com.worldmetrics.backend.dto;
 
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 
 public record SavedWidgetRequestDTO(
         @NotBlank(message = "Title is required")
@@ -13,5 +14,11 @@ public record SavedWidgetRequestDTO(
         String indicatorCode,
 
         @NotBlank(message = "Chart type is required")
-        String chartType
+        String chartType,
+
+        @NotNull(message = "Start year is required")
+        Integer startYear,
+
+        @NotNull(message = "End year is required")
+        Integer endYear
 ) {}

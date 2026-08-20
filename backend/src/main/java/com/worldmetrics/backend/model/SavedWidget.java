@@ -33,4 +33,10 @@ public class SavedWidget {
 
     @Column(name = "chart_type", nullable = false, length = 50)
     private String chartType;
+
+    @Column(name = "start_year")
+    private Integer startYear;
+
+    @Column(name = "end_year")
+    private Integer endYear;
 }

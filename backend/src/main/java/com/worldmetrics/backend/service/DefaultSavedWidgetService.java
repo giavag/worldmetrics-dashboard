@@ -30,13 +30,7 @@ public class DefaultSavedWidgetService implements SavedWidgetService {
         User user = userRepository.findByEmail(userEmail)
                 .orElseThrow(() -> new EntityNotFoundException("User not found with email: " + userEmail));
 
-        SavedWidget widget = new SavedWidget();
-        widget.setUser(user);
-
-        widget.setTitle(requestDto.title());
-        widget.setCountries(requestDto.countries());
-        widget.setIndicatorCode(requestDto.indicatorCode());
-        widget.setChartType(requestDto.chartType());
+        SavedWidget widget = savedWidgetMapper.toEntity(requestDto, user);
 
         SavedWidget savedWidget = savedWidgetRepository.save(widget);
 
