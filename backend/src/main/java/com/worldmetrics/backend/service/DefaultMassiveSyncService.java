@@ -6,6 +6,7 @@ import com.worldmetrics.backend.repository.CountryRepository;
 import com.worldmetrics.backend.repository.IndicatorRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -57,5 +58,19 @@ public class DefaultMassiveSyncService implements MassiveSyncService {
         }
 
         log.info("Massive data sync completed successfully!");
+    }
+
+    @Scheduled(cron = "0 0 2 1 * ?")
+    public void scheduledMonthlySync() {
+        log.info("Starting scheduled automated ETL sync...");
+
+        int previousYear = java.time.Year.now().getValue() - 1;
+        String effectiveYearRange = "2000:" + previousYear;
+
+        try {
+            this.syncAllData(effectiveYearRange);
+        } catch (Exception e) {
+            log.error("Scheduled ETL sync failed", e);
+        }
     }
 }

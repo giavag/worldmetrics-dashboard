@@ -38,12 +38,19 @@ public class WorldBankDataRestController {
 
     @PostMapping("/sync-all")
     public ResponseEntity<String> syncAllData(
-            @RequestParam(defaultValue = "2000:2025") String yearRange) {
+            @RequestParam(required = false) String yearRange) {
 
-        log.info("Received REST request to trigger massive ETL sync-all for years: {}", yearRange);
+        String effectiveYearRange = yearRange;
 
-        massiveSyncService.syncAllData(yearRange);
+        if (effectiveYearRange == null || effectiveYearRange.trim().isEmpty()) {
+            int previousYear = java.time.Year.now().getValue() - 1;
+            effectiveYearRange = "2000:" + previousYear;
+        }
 
-        return ResponseEntity.ok("Massive sync process completed successfully");
+        log.info("Received REST request to trigger massive ETL sync-all for years: {}", effectiveYearRange);
+
+        massiveSyncService.syncAllData(effectiveYearRange);
+
+        return ResponseEntity.ok("Massive sync process completed successfully for range: " + effectiveYearRange);
     }
 }
