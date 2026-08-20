@@ -3,10 +3,11 @@ import { metricService } from '../services/metricService';
 import { etlService } from '../services/etlService';
 import { authService } from '../services/authService';
 import { dimensionService, type DimensionItem } from '../services/dimensionService';
-import MetricChart, {type ChartSeries } from '../components/MetricChart';
+import MetricChart, { type ChartSeries } from '../components/MetricChart';
 import { savedWidgetService } from '../services/savedWidgetService';
 import { Button } from '@/components/ui/button';
 import { Save } from 'lucide-react';
+import { Slider } from '@/components/ui/slider'; // Προσθήκη του Slider component
 
 const CHART_TYPES = [
     { value: 'line', label: 'Line Chart' },
@@ -21,10 +22,14 @@ const Compare: React.FC = () => {
     const [countries, setCountries] = useState<DimensionItem[]>([]);
     const [indicators, setIndicators] = useState<DimensionItem[]>([]);
 
-    // Change selectedCountry to an array
     const [selectedCountries, setSelectedCountries] = useState<string[]>([]);
     const [selectedIndicator, setSelectedIndicator] = useState<string>('');
     const [chartType, setChartType] = useState<'line' | 'bar' | 'area'>('line');
+
+    // Year States for client-side filtering
+    const previousYear = new Date().getFullYear() - 1;
+    const [startYear, setStartYear] = useState<number>(2000);
+    const [endYear, setEndYear] = useState<number>(previousYear);
 
     const [chartData, setChartData] = useState<any[]>([]);
     const [chartSeries, setChartSeries] = useState<ChartSeries[]>([]);
@@ -128,7 +133,7 @@ const Compare: React.FC = () => {
         try {
             setIsSaving(true);
             await savedWidgetService.saveWidget({
-                title: `${currentIndicatorName} - Comparison`, // Φτιάχνουμε έναν ωραίο τίτλο
+                title: `${currentIndicatorName} - Comparison`,
                 countries: selectedCountries.join(','),
                 indicatorCode: selectedIndicator,
                 chartType: chartType
@@ -153,6 +158,12 @@ const Compare: React.FC = () => {
 
     const currentIndicatorName = indicators.find(i => i.code === selectedIndicator)?.name || selectedIndicator;
     const chartTitle = selectedIndicator ? `${currentIndicatorName} (Comparison)` : 'Loading...';
+
+    // Client-side data filtering based on selected year range
+    const filteredChartData = chartData.filter(point => {
+        const pointYear = parseInt(point.year, 10);
+        return pointYear >= startYear && pointYear <= endYear;
+    });
 
     return (
         <div className="space-y-6">
@@ -192,7 +203,8 @@ const Compare: React.FC = () => {
             )}
 
             {/* Filters Section */}
-            <div className="bg-white p-6 rounded shadow-sm border border-slate-200 flex flex-col sm:flex-row gap-4">
+            <div className="bg-white p-6 rounded shadow-sm border border-slate-200 flex flex-col md:flex-row gap-4">
+                {/* Countries List */}
                 <div className="flex-1">
                     <label className="block text-sm font-medium text-slate-700 mb-1">
                         Countries (Select up to 5)
@@ -212,7 +224,8 @@ const Compare: React.FC = () => {
                     </select>
                 </div>
 
-                <div className="flex-1 flex flex-col gap-4">
+                {/* Indicator and Chart Type */}
+                <div className="flex-1 flex flex-col gap-4 justify-center">
                     <div>
                         <label className="block text-sm font-medium text-slate-700 mb-1">Indicator</label>
                         <select
@@ -239,6 +252,32 @@ const Compare: React.FC = () => {
                         </select>
                     </div>
                 </div>
+
+                {/* Client-side Range Slider */}
+                <div className="flex-1 min-w-[250px] flex flex-col justify-center px-4 border-l border-slate-100">
+                    <div className="flex justify-between items-center mb-4">
+                        <label className="text-sm font-medium text-slate-700">
+                            Year Range
+                        </label>
+                        <span className="text-sm font-bold text-wm-primary bg-blue-50 px-2 py-1 rounded">
+                            {startYear} - {endYear}
+                        </span>
+                    </div>
+                    <Slider
+                        defaultValue={[startYear, endYear]}
+                        min={2000}
+                        max={previousYear}
+                        step={1}
+                        minStepsBetweenValues={1}
+                        onValueChange={(values) => {
+                            if (Array.isArray(values)) {
+                                setStartYear(values[0]);
+                                setEndYear(values[1]);
+                            }
+                        }}
+                        className="w-full"
+                    />
+                </div>
             </div>
 
             {loading ? (
@@ -249,7 +288,7 @@ const Compare: React.FC = () => {
                 <div className="grid grid-cols-1 gap-4">
                     <MetricChart
                         title={chartTitle}
-                        data={chartData}
+                        data={filteredChartData} // Περνάμε τα φιλτραρισμένα δεδομένα!
                         series={chartSeries}
                         chartType={chartType}
                     />
