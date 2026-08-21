@@ -4,6 +4,7 @@ import com.worldmetrics.backend.dto.SavedWidgetRequestDTO;
 import com.worldmetrics.backend.dto.SavedWidgetResponseDTO;
 import com.worldmetrics.backend.service.SavedWidgetService;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -19,6 +20,7 @@ import java.util.List;
 @RequestMapping("/api/v1/widgets")
 @RequiredArgsConstructor
 @SecurityRequirement(name = "Bearer Authentication")
+@Tag(name = "Saved Widgets", description = "Endpoints for managing user's saved chart widgets")
 public class SavedWidgetRestController {
 
     private final SavedWidgetService savedWidgetService;

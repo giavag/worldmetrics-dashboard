@@ -2,6 +2,7 @@ package com.worldmetrics.backend.api;
 
 import com.worldmetrics.backend.dto.MetricSeriesResponseDto;
 import com.worldmetrics.backend.service.WorldBankDataService;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
@@ -16,6 +17,7 @@ import java.util.List;
 @RequestMapping("/api/v1/metrics")
 @RequiredArgsConstructor
 @Slf4j
+@Tag(name = "Metrics & Comparison", description = "Endpoints for fetching time-series data and comparing countries")
 public class MetricServingRestController {
 
     private final WorldBankDataService worldBankDataService;
