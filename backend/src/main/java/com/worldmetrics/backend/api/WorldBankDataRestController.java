@@ -2,6 +2,7 @@ package com.worldmetrics.backend.api;
 
 import com.worldmetrics.backend.service.MassiveSyncService;
 import com.worldmetrics.backend.service.WorldBankDataService;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
@@ -17,6 +18,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/api/v1/etl")
 @RequiredArgsConstructor
 @Slf4j
+@Tag(name = "World Bank ETL", description = "Endpoints for triggering data synchronization from the World Bank API")
 public class WorldBankDataRestController {
 
     private final WorldBankDataService worldBankDataService;

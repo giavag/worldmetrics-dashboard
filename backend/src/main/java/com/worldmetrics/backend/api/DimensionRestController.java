@@ -2,6 +2,7 @@ package com.worldmetrics.backend.api;
 
 import com.worldmetrics.backend.dto.DimensionItemDTO;
 import com.worldmetrics.backend.service.DimensionService;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
@@ -19,6 +20,7 @@ import java.util.List;
 @RequestMapping("/api/v1/dimensions")
 @RequiredArgsConstructor
 @Slf4j
+@Tag(name = "Dimensions", description = "Endpoints for retrieving available countries and indicators")
 public class DimensionRestController {
 
     private final DimensionService dimensionService;
