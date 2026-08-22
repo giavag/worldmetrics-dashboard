@@ -8,7 +8,7 @@ spring:
   jpa:
     hibernate:
       ddl-auto: validate
-    show-sql: true
+    show-sql: false
     properties:
       hibernate:
         format_sql: true
@@ -24,4 +24,8 @@ application:
   admin:
     email: ${ADMIN_SETUP_EMAIL}
     password: ${ADMIN_SETUP_PASSWORD}
+
+logging:
+  level:
+    org.hibernate.SQL: DEBUG
 
