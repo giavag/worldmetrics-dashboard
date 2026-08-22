@@ -11,5 +11,19 @@ services:
     volumes:
       - pgdata:/var/lib/postgresql/data
 
+  backend:
+    image: worldmetrics-backend:latest
+    container_name: worldmetrics-api
+    ports:
+      - "8080:8080"
+    depends_on:
+      - db
+    environment:
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://db:5432/${DB_NAME}
+      - DB_USER=${DB_USER}
+      - DB_PASS=${DB_PASS}
+      - ADMIN_SETUP_EMAIL=${ADMIN_SETUP_EMAIL}
+      - ADMIN_SETUP_PASSWORD=${ADMIN_SETUP_PASSWORD}
+
 volumes:
   pgdata:
