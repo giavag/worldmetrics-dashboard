@@ -29,8 +29,11 @@ To run the application locally for development, ensure you have Docker and Node.
     *   `ADMIN_SETUP_EMAIL`, `ADMIN_SETUP_PASSWORD` (Initial admin credentials)
         *   **Security Note:** Passwords in this application must be at least 8 characters long and contain at least one digit, one lowercase letter, one uppercase letter, and one special character (`!@#$%^&+=`). Ensure your `ADMIN_SETUP_PASSWORD` complies with this policy.
 3.  Execute `docker compose up db -d` to start the PostgreSQL 17 database container independently.
-4.  Navigate to the `backend` folder and run `mvn spring-boot:run` to start the backend REST API locally on port 8080.
-    *   *Note on Initial Setup:* Upon the first successful application startup, the backend automatically reads the `ADMIN_SETUP_*` variables from the `.env` file and seeds the database with a default Administrator account.
+4.  Start the backend REST API locally on port 8080.
+    *   **Via IDE (Recommended):** Open the project in your IDE (e.g., IntelliJ IDEA). Edit the Run Configuration for `BackendApplication` to include the environment variables defined in your `.env` file (you can use an EnvFile plugin or add them manually to the Environment Variables section), then run the application.
+    *   **Via CLI (Linux / Mac):** You can export the variables before running Maven: `export $(grep -v '^#' .env | xargs) && cd backend && mvn spring-boot:run`
+    *   **Via CLI (Windows - Git Bash):** Assuming you have Git for Windows installed, open Git Bash in the root directory and execute the Linux export command: `export $(grep -v '^#' .env | xargs) && cd backend && mvn spring-boot:run`
+    *   *Note on Initial Setup:* Upon the first successful application startup, the backend automatically reads the `ADMIN_SETUP_*` variables and seeds the database with a default Administrator account.
 5.  Navigate to the `frontend` folder, execute `npm install` to download dependencies, and then `npm run dev` to start the Vite development server.
 
 ## Production Build & CI/CD
