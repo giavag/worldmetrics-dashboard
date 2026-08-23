@@ -22,7 +22,7 @@ public class DefaultDimensionService implements DimensionService {
     @Transactional(readOnly = true)
     public List<DimensionItemDTO> getAllCountries() {
         log.debug("Fetching all countries from the database");
-        return countryRepository.findAll().stream()
+        return countryRepository.findAllByOrderByNameAsc().stream()
                 .map(country -> new DimensionItemDTO(country.getIsoCode(), country.getName()))
                 .toList();
     }
@@ -31,7 +31,7 @@ public class DefaultDimensionService implements DimensionService {
     @Transactional(readOnly = true)
     public List<DimensionItemDTO> getAllIndicators() {
         log.debug("Fetching all indicators from the database");
-        return indicatorRepository.findAll().stream()
+        return indicatorRepository.findAllByOrderByNameAsc().stream()
                 .map(indicator -> new DimensionItemDTO(indicator.getApiCode(), indicator.getName()))
                 .toList();
     }
