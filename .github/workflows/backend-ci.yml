@@ -1,0 +1,60 @@
+name: Backend CI
+
+on:
+  push:
+    branches: [ "main" ]
+    paths:
+      - 'backend/**'
+      - '.github/workflows/backend-ci.yml'
+  pull_request:
+    branches: [ "main" ]
+    paths:
+      - 'backend/**'
+      - '.github/workflows/backend-ci.yml'
+
+defaults:
+  run:
+    working-directory: ./backend
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:17-alpine
+        env:
+          POSTGRES_DB: worldmetrics_test
+          POSTGRES_USER: testuser
+          POSTGRES_PASSWORD: testpassword
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+      - name: Checkout Source Code
+        uses: actions/checkout@v7
+
+      - name: Set up Amazon Corretto Java 21
+        uses: actions/setup-java@v5
+        with:
+          java-version: '21'
+          distribution: 'corretto'
+          cache: 'maven'
+
+      - name: Build and Test with Maven
+        env:
+          DB_NAME: worldmetrics_test
+          DB_USER: testuser
+          DB_PASS: testpassword
+          ADMIN_SETUP_EMAIL: testadmin@worldmetrics.com
+          ADMIN_SETUP_PASSWORD: Supersecretpassword123!
+          SPRING_DATASOURCE_URL: jdbc:postgresql://localhost:5432/worldmetrics_test
+        run: mvn clean verify
+
+      - name: Verify Docker Image Build
+        run: docker build -t worldmetrics-backend:ci-test .
