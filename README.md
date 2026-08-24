@@ -4,6 +4,20 @@ This repository contains the final project for the Athens University of Economic
 ## Features & Functionality
 The application provides a robust, interactive interface for tracking, visualizing, and analyzing global economic and demographic metrics.
 
+## Application Screenshots
+
+**Overview Dashboard**
+![Overview Dashboard](images/overview.png)
+
+**Comparative Analysis**
+![Compare View](images/compare.png)
+
+**My Dashboards (Saved Widgets)**
+![My Dashboards](images/my-dashboards.png)
+
+**Admin Panel - User Management**
+![Admin Panel](images/admin-panel.png)
+
 **End-User Experience:**
 *   **Interactive Data Visualization (Overview):** Users can dynamically generate charts (e.g., Line Charts) by selecting a specific Country, Indicator (e.g., GDP), and adjusting a custom Year Range slider.
 *   **Comparative Analysis:** The "Compare" module allows users to select up to 5 countries simultaneously to benchmark indicator trends against each other on a single, multi-line chart.
@@ -16,7 +30,7 @@ The application provides a robust, interactive interface for tracking, visualizi
 *   **User Management:** A dedicated Admin Panel provides a comprehensive table to view, edit, and delete registered accounts, as well as assign system roles (ADMIN vs. USER).
 
 ## Technologies Used
-*   **Backend:** Java 21, Spring Boot, Spring Security (JWT Auth), Spring Data JPA.
+*   **Backend:** Java 21, Spring Boot 4.1.0, Spring Security (JWT Auth), Spring Data JPA.
 *   **Frontend:** React 19, TypeScript, Vite, TailwindCSS, Recharts.
 *   **Database:** PostgreSQL 17, Flyway for schema migrations.
 *   **DevOps & CI/CD:** Docker, Docker Compose, GitHub Actions.
