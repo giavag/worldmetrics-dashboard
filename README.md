@@ -4,6 +4,13 @@ This repository contains the final project for the Athens University of Economic
 ## Features & Functionality
 The application provides a robust, interactive interface for tracking, visualizing, and analyzing global economic and demographic metrics.
 
+## Video Demonstration
+
+
+https://github.com/user-attachments/assets/56b8d66e-a86e-462c-adac-355cab60a747
+
+
+
 ## Application Screenshots
 
 **Overview Dashboard**
@@ -31,7 +38,7 @@ The application provides a robust, interactive interface for tracking, visualizi
 
 ## Technologies Used
 *   **Backend:** Java 21, Spring Boot 4.1.0, Spring Security (JWT Auth), Spring Data JPA.
-*   **Frontend:** React 19, TypeScript, Vite, TailwindCSS, Recharts.
+*   **Frontend:** React 19, TypeScript, Vite, TailwindCSS, shadcn/ui (Recharts).
 *   **Database:** PostgreSQL 17, Flyway for schema migrations.
 *   **DevOps & CI/CD:** Docker, Docker Compose, GitHub Actions.
 
